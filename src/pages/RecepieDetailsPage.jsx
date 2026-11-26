@@ -1,55 +1,75 @@
 import { useContext } from "react"
 import recepieContext from "../context/RecepieContext.js"
-import {useParams} from "react-router-dom"
+import { Link, useParams } from "react-router-dom"
+import './RecepieDetailsPage.css'
 
-export default function RecepieDetails(){
-
-    const {id} = useParams()
+export default function RecepieDetails() {
+    const { id } = useParams()
     const recepies = useContext(recepieContext)
+    const recipe = recepies?.find((item) => item.idMeal === id)
+
+    if (!recipe) {
+        return (
+            <main className="recipe-details">
+                <div className="recipe-details__container">
+                    <Link className="recipe-details__back" to="/">← Back to recipes</Link>
+                    <section className="recipe-details__panel" role="status">
+                        <h1>{recepies?.length ? 'Recipe not found' : 'Waiting for your recipe…'}</h1>
+                        <p>{recepies?.length ? 'Explore the collection to find something delicious.' : 'If it doesn’t appear, return to the collection and try again.'}</p>
+                    </section>
+                </div>
+            </main>
+        )
+    }
 
     const ingredients = []
-     
-     console.log("iduseparam",id)
-     console.log("recepies",recepies)
+    for (let i = 1; i <= 20; i++) {
+        const name = recipe[`strIngredient${i}`]?.trim()
+        if (name) ingredients.push({ name, measure: recipe[`strMeasure${i}`]?.trim() })
+    }
+    const instructions = (recipe.strInstructions || '').split(/\r?\n+/).map((text) => text.trim()).filter(Boolean)
 
-    const filteredRecepie = recepies.find((recepie)=>{
-                return recepie.idMeal === id
-            })
+    return (
+        <main className="recipe-details">
+            <div className="recipe-details__container">
+                <Link className="recipe-details__back" to="/">← Back to recipes</Link>
+                <section className="recipe-details__hero" aria-labelledby="recipe-title">
+                    <img className="recipe-details__photo" src={recipe.strMealThumb} alt={recipe.strMeal} />
+                    <div className="recipe-details__intro">
+                        <p className="recipe-details__eyebrow">A little joy, made from scratch</p>
+                        <h1 id="recipe-title">{recipe.strMeal}</h1>
+                        <div className="recipe-details__badges">
+                            {recipe.strArea && <span>{recipe.strArea} cuisine</span>}
+                            {recipe.strCategory && <span>{recipe.strCategory}</span>}
+                            <span>{ingredients.length} ingredients</span>
+                        </div>
+                        <p className="recipe-details__welcome">Gather your ingredients, make yourself at home, and let’s get cooking.</p>
+                        <div className="recipe-details__actions">
+                            <button type="button" className="recipe-details__edit">Edit recipe</button>
+                            <button type="button" className="recipe-details__delete">Delete recipe</button>
+                        </div>
+                    </div>
+                </section>
 
-    for(let i=0;i<=20;i++){
-       const ingredient = filteredRecepie[`strIngredient${i}`]
-         if(ingredient && ingredient.trim()!=""){
-            ingredients.push(ingredient)
-         }
-    }      
-
-            console.log("filiered recepie",filteredRecepie)
-
-    return <div>
-        <header className = "w-fit h-fit bg-emerald-100 text-3xl font-bold flex justify-center  align-center m-auto p-2 rounded-lg">
-            {filteredRecepie.strMeal}
-        </header>
-        <div className="flex justify-center gap-4 mt-8">
-            <button className="px-6 py-2 bg-emerald-500 text-white rounded-lg font-semibold hover:bg-emerald-700">
-             Edit
-            </button>
-            <button className="px-6 py-2 bg-red-500 text-white rounded-lg font-semibold hover:bg-red-600">
-             Delete
-            </button>
-        </div>
-       
-        <section className = "p-4">
-            <p className ="bold text-lg text-amber-100 mb-4">Ingredients:</p>
-            <ul className= "mb-8">
-            {ingredients.map((ingredient,index)=>{
-                return <li key = {index} className = "italic text-lg text-emerald-500 gap-2 ml-4">{ingredient}</li>
-                
-            })
-           }
-           </ul>
-           <p className ="bold text-lg text-amber-100 mb-4">Cooking Instructions:</p>
-           <p className= "italic text-lg text-emerald-500 gap-2 ml-4" >{filteredRecepie.strInstructions}</p>       
-        </section>
-           
-    </div>
+                <div className="recipe-details__body">
+                    <section className="recipe-details__panel recipe-details__ingredients" aria-labelledby="ingredients-title">
+                        <p className="recipe-details__eyebrow">The essentials</p>
+                        <h2 id="ingredients-title">Ingredients</h2>
+                        <ul>
+                            {ingredients.map(({ name, measure }, index) => (
+                                <li key={index}><span>{name}</span><span className="recipe-details__measure">{measure}</span></li>
+                            ))}
+                        </ul>
+                    </section>
+                    <section className="recipe-details__panel" aria-labelledby="instructions-title">
+                        <p className="recipe-details__eyebrow">Bring it all together</p>
+                        <h2 id="instructions-title">In the kitchen</h2>
+                        <div className="recipe-details__instructions">
+                            {instructions.length ? instructions.map((text, index) => <p key={index}>{text}</p>) : <p>Cooking instructions are not available for this recipe yet.</p>}
+                        </div>
+                    </section>
+                </div>
+            </div>
+        </main>
+    )
 }
